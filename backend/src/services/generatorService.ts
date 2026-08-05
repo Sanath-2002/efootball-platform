@@ -100,8 +100,8 @@ export const generateKnockoutBracket = async (competitionId: string) => {
         data: {
           homeTeamId,
           awayTeamId: null,
-          homeScore: 1,
-          awayScore: 0,
+          homeScore: null,
+          awayScore: null,
           status: 'COMPLETED',
           winnerId: homeTeamId,
         },
@@ -127,8 +127,8 @@ export const generateKnockoutBracket = async (competitionId: string) => {
         data: {
           homeTeamId: null,
           awayTeamId,
-          homeScore: 0,
-          awayScore: 1,
+          homeScore: null,
+          awayScore: null,
           status: 'COMPLETED',
           winnerId: awayTeamId,
         },
