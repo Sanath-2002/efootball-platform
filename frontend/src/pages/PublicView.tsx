@@ -15,26 +15,41 @@ export const PublicView: React.FC = () => {
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [stats, setStats] = useState<CompetitionStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'TABLE' | 'STATS' | 'TEAMS'>('MATCHES');
 
   useEffect(() => {
     const fetchPublicData = async () => {
       if (!slug) return;
+      setLoading(true);
+      setErrorMsg('');
+
       try {
         const res = await api.get(`/competitions/public/${slug}`);
-        setCompetition(res.data);
+        const comp = res.data;
+        setCompetition(comp);
 
-        const compId = res.data.id;
-        if (res.data.type === 'LEAGUE') {
-          const stdRes = await api.get(`/matches/competition/${compId}/standings`);
-          setStandings(stdRes.data);
+        if (comp && comp.id) {
+          if (comp.type === 'LEAGUE') {
+            try {
+              const stdRes = await api.get(`/matches/competition/${comp.id}/standings`);
+              setStandings(stdRes.data || []);
+            } catch (err) {
+              console.error('Failed to load standings:', err);
+            }
+          }
+
+          try {
+            const statsRes = await api.get(`/matches/competition/${comp.id}/stats`);
+            setStats(statsRes.data || null);
+          } catch (err) {
+            console.error('Failed to load stats:', err);
+          }
         }
-
-        const statsRes = await api.get(`/matches/competition/${compId}/stats`);
-        setStats(statsRes.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load public competition view:', err);
+        setErrorMsg(err.response?.data?.error || 'Unable to load public competition.');
       } finally {
         setLoading(false);
       }
@@ -47,17 +62,21 @@ export const PublicView: React.FC = () => {
     return <div className="text-center py-12 text-slate-500 text-xs font-mono">Loading competition sheet...</div>;
   }
 
-  if (!competition) {
+  if (errorMsg || !competition) {
     return (
-      <div className="text-center py-12 space-y-2 font-sans">
+      <div className="text-center py-12 space-y-3 font-sans">
         <h2 className="text-lg font-bold text-slate-900">Competition Not Found</h2>
-        <p className="text-xs text-slate-500">The competition link is invalid or unavailable.</p>
+        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          {errorMsg || 'The requested competition link is invalid or unavailable.'}
+        </p>
         <Link to="/" className="text-slate-900 font-bold hover:underline text-xs inline-block pt-1">
           Return to Main Page
         </Link>
       </div>
     );
   }
+
+  const statusText = competition.status ? competition.status.replace('_', ' ') : 'DRAFT';
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto px-4 py-4 font-sans">
@@ -68,14 +87,14 @@ export const PublicView: React.FC = () => {
             Public View
           </span>
           <span className="font-bold uppercase text-slate-700">
-            {competition.type} • {competition.format} • {competition.status.replace('_', ' ')}
+            {competition.type || 'TOURNAMENT'} • {competition.format || 'BO1'} • {statusText}
           </span>
         </div>
 
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">{competition.name}</h1>
           <p className="text-xs text-slate-500 font-mono">
-            Coordinator: <strong className="text-slate-800">{competition.coordinator?.name}</strong>
+            Coordinator: <strong className="text-slate-800">{competition.coordinator?.name || 'Admin'}</strong>
           </p>
         </div>
 
@@ -90,7 +109,7 @@ export const PublicView: React.FC = () => {
       <div className="flex items-center gap-1 border-b border-slate-200 pb-0 overflow-x-auto">
         <button
           onClick={() => setActiveTab('MATCHES')}
-          className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors ${
+          className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors cursor-pointer ${
             activeTab === 'MATCHES'
               ? 'bg-white text-slate-900 border-slate-200 -mb-px'
               : 'text-slate-600 hover:text-slate-900 border-transparent'
@@ -102,7 +121,7 @@ export const PublicView: React.FC = () => {
         {competition.type === 'LEAGUE' && (
           <button
             onClick={() => setActiveTab('TABLE')}
-            className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors ${
+            className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors cursor-pointer ${
               activeTab === 'TABLE'
                 ? 'bg-white text-slate-900 border-slate-200 -mb-px'
                 : 'text-slate-600 hover:text-slate-900 border-transparent'
@@ -114,7 +133,7 @@ export const PublicView: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('STATS')}
-          className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors ${
+          className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors cursor-pointer ${
             activeTab === 'STATS'
               ? 'bg-white text-slate-900 border-slate-200 -mb-px'
               : 'text-slate-600 hover:text-slate-900 border-transparent'
@@ -125,7 +144,7 @@ export const PublicView: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('TEAMS')}
-          className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors ${
+          className={`px-3 py-2 font-bold text-xs rounded-t border-t border-x transition-colors cursor-pointer ${
             activeTab === 'TEAMS'
               ? 'bg-white text-slate-900 border-slate-200 -mb-px'
               : 'text-slate-600 hover:text-slate-900 border-transparent'
@@ -156,14 +175,18 @@ export const PublicView: React.FC = () => {
         {activeTab === 'TEAMS' && (
           <div className="bg-white border border-slate-200 p-4 rounded-lg space-y-3 shadow-xs">
             <h3 className="text-xs font-bold text-slate-900 uppercase">Teams Roster</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-              {competition.teams?.map((t) => (
-                <div key={t.id} className="bg-slate-50 border border-slate-200 p-2.5 rounded flex items-center gap-2.5">
-                  <KitBadge name={t.name} size="sm" />
-                  <span className="font-bold text-slate-800 text-xs truncate">{t.name}</span>
-                </div>
-              ))}
-            </div>
+            {(!competition.teams || competition.teams.length === 0) ? (
+              <p className="text-xs text-slate-500 py-4 text-center">No teams registered yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {competition.teams.map((t) => (
+                  <div key={t.id} className="bg-slate-50 border border-slate-200 p-2.5 rounded flex items-center gap-2.5">
+                    <KitBadge name={t.name} size="sm" />
+                    <span className="font-bold text-slate-800 text-xs truncate">{t.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

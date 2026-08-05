@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -12,6 +12,53 @@ import { CreateCompetition } from './pages/CreateCompetition';
 import { CompetitionDetails } from './pages/CompetitionDetails';
 import { PublicView } from './pages/PublicView';
 
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = {
+    hasError: false,
+    error: null,
+  };
+
+  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Uncaught component error:', error, errorInfo);
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+          <div className="bg-white border border-slate-200 p-6 rounded-lg max-w-md w-full space-y-3 text-center shadow-xs">
+            <h2 className="text-base font-bold text-slate-900">Application Error</h2>
+            <p className="text-xs text-slate-500">
+              An error occurred while displaying this page.
+            </p>
+            <button
+              onClick={() => window.location.assign('/')}
+              className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded hover:bg-slate-800 transition-colors"
+            >
+              Return to Homepage
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,7 +71,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </main>
         <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500 bg-white">
-          eFootball SaaS Competition Platform • Built with React, Vite, Express & Prisma
+          eFootball SaaS Competition Platform • Managed Tournament System
         </footer>
       </div>
     );
@@ -55,45 +102,47 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/c/:slug" element={<PublicView />} />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/competitions/new"
-              element={
-                <ProtectedRoute>
-                  <CreateCompetition />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/competitions/:id"
-              element={
-                <ProtectedRoute>
-                  <CompetitionDetails />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AppLayout>
-      </BrowserRouter>
-      <Analytics />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/c/:slug" element={<PublicView />} />
+              
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/competitions/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateCompetition />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/competitions/:id"
+                element={
+                  <ProtectedRoute>
+                    <CompetitionDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AppLayout>
+        </BrowserRouter>
+        <Analytics />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 
