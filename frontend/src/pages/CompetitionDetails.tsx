@@ -8,6 +8,7 @@ import { LeagueTable } from '../components/LeagueTable';
 import { StatsCards } from '../components/StatsCards';
 import { MatchList } from '../components/MatchList';
 import { KitBadge } from '../components/KitBadge';
+import { ChampionModal } from '../components/ChampionModal';
 
 export const CompetitionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ export const CompetitionDetails: React.FC = () => {
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [stats, setStats] = useState<CompetitionStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showChampionModal, setShowChampionModal] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'TEAMS' | 'MATCHES' | 'TABLE' | 'STATS'>('TEAMS');
   const [teamNameInput, setTeamNameInput] = useState('');
@@ -92,8 +94,15 @@ export const CompetitionDetails: React.FC = () => {
 
   const handleUpdateScore = async (matchId: string, homeScore: number | null, awayScore: number | null) => {
     try {
-      await api.patch(`/matches/${matchId}/score`, { homeScore, awayScore });
+      const res = await api.patch(`/matches/${matchId}/score`, { homeScore, awayScore });
       await reloadData();
+      
+      // Auto-popup celebration when score update completes competition
+      const updatedStats = res.data?.stats;
+      const compStatus = res.data?.competitionStatus;
+      if (updatedStats?.champion || compStatus === 'COMPLETED') {
+        setShowChampionModal(true);
+      }
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to update score.');
     }
@@ -122,8 +131,20 @@ export const CompetitionDetails: React.FC = () => {
     );
   }
 
+  const runnerUp = standings.length >= 2 ? standings[1].name : null;
+
   return (
     <div className="space-y-5 font-sans">
+      {/* Champion Celebration Modal */}
+      <ChampionModal
+        isOpen={showChampionModal}
+        onClose={() => setShowChampionModal(false)}
+        championName={stats?.champion || 'Champion'}
+        competitionName={competition.name}
+        competitionType={competition.type}
+        runnerUpName={runnerUp}
+      />
+
       {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-2 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -150,10 +171,18 @@ export const CompetitionDetails: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {stats?.champion && (
+              <button
+                onClick={() => setShowChampionModal(true)}
+                className="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold rounded text-xs transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                🏆 Champion: {stats.champion}
+              </button>
+            )}
             <button
               onClick={copyShareLink}
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded text-xs transition-colors"
+              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded text-xs transition-colors cursor-pointer"
             >
               {copied ? 'Copied Public URL' : 'Copy Share Link'}
             </button>

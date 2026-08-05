@@ -7,6 +7,7 @@ import { LeagueTable } from '../components/LeagueTable';
 import { StatsCards } from '../components/StatsCards';
 import { MatchList } from '../components/MatchList';
 import { KitBadge } from '../components/KitBadge';
+import { ChampionModal } from '../components/ChampionModal';
 
 export const PublicView: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -16,6 +17,7 @@ export const PublicView: React.FC = () => {
   const [stats, setStats] = useState<CompetitionStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showChampionModal, setShowChampionModal] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'MATCHES' | 'TABLE' | 'STATS' | 'TEAMS'>('MATCHES');
 
@@ -77,9 +79,20 @@ export const PublicView: React.FC = () => {
   }
 
   const statusText = competition.status ? competition.status.replace('_', ' ') : 'DRAFT';
+  const runnerUp = standings.length >= 2 ? standings[1].name : null;
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto px-4 py-4 font-sans">
+      {/* Champion Celebration Modal */}
+      <ChampionModal
+        isOpen={showChampionModal}
+        onClose={() => setShowChampionModal(false)}
+        championName={stats?.champion || 'Champion'}
+        competitionName={competition.name}
+        competitionType={competition.type}
+        runnerUpName={runnerUp}
+      />
+
       {/* Public Banner Header */}
       <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-2 shadow-xs">
         <div className="flex items-center gap-2 font-mono text-[10px]">
@@ -99,9 +112,12 @@ export const PublicView: React.FC = () => {
         </div>
 
         {stats?.champion && (
-          <div className="inline-block px-2.5 py-1 bg-emerald-800 text-white rounded text-xs font-bold font-mono">
-            🏆 Champion: {stats.champion}
-          </div>
+          <button
+            onClick={() => setShowChampionModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-500 text-slate-900 rounded text-xs font-extrabold font-mono shadow-xs transition-colors cursor-pointer"
+          >
+            🏆 Champion: {stats.champion} (Click to Celebrate)
+          </button>
         )}
       </div>
 
