@@ -15,34 +15,67 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('token');
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Safety fallback timeout to ensure app never hangs indefinitely on loading
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 2500);
+
     const fetchMe = async () => {
       if (!token) {
-        setLoading(false);
+        if (isMounted) setLoading(false);
+        clearTimeout(safetyTimeout);
         return;
       }
       try {
         const res = await api.get('/auth/me');
-        setUser(res.data);
+        if (isMounted) setUser(res.data);
       } catch (err) {
-        console.error('Session expired:', err);
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
+        console.error('Session verification error:', err);
+        try {
+          localStorage.removeItem('token');
+        } catch (e) {
+          // Ignore
+        }
+        if (isMounted) {
+          setToken(null);
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
+        clearTimeout(safetyTimeout);
       }
     };
+
     fetchMe();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+    };
   }, [token]);
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
     const { token: newToken, user: userData } = res.data;
-    localStorage.setItem('token', newToken);
+    try {
+      localStorage.setItem('token', newToken);
+    } catch (e) {
+      // Ignore
+    }
     setToken(newToken);
     setUser(userData);
   };
@@ -50,13 +83,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, name: string) => {
     const res = await api.post('/auth/register', { email, password, name });
     const { token: newToken, user: userData } = res.data;
-    localStorage.setItem('token', newToken);
+    try {
+      localStorage.setItem('token', newToken);
+    } catch (e) {
+      // Ignore
+    }
     setToken(newToken);
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    try {
+      localStorage.removeItem('token');
+    } catch (e) {
+      // Ignore
+    }
     setToken(null);
     setUser(null);
   };
