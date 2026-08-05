@@ -1,0 +1,76 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  competitions Competition[]
+}
+
+model Competition {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  type          String   // "TOURNAMENT" | "LEAGUE"
+  format        String   @default("BO1") // "BO1" | "BO3"
+  status        String   @default("DRAFT") // "DRAFT" | "IN_PROGRESS" | "COMPLETED"
+  coordinatorId String
+  coordinator   User     @relation(fields: [coordinatorId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  teams         Team[]
+  matches       Match[]
+}
+
+model Team {
+  id            String      @id @default(uuid())
+  name          String
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+  wonMatches  Match[] @relation("WinnerTeam")
+
+  @@unique([competitionId, name])
+}
+
+model Match {
+  id            String      @id @default(uuid())
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  
+  round         Int
+  matchNumber   Int
+  stage         String      @default("KNOCKOUT") // "KNOCKOUT" | "LEAGUE"
+  
+  homeTeamId    String?
+  homeTeam      Team?       @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: SetNull)
+  
+  awayTeamId    String?
+  awayTeam      Team?       @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: SetNull)
+  
+  homeScore     Int?
+  awayScore     Int?
+  status        String      @default("SCHEDULED") // "SCHEDULED" | "COMPLETED"
+  
+  winnerId      String?
+  winner        Team?       @relation("WinnerTeam", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  nextMatchId   String?
+  nextMatchSlot String?     // "HOME" | "AWAY"
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
