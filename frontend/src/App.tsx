@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -91,6 +92,7 @@ export const App: React.FC = () => {
           </Routes>
         </AppLayout>
       </BrowserRouter>
+      <Analytics />
     </AuthProvider>
   );
 };
