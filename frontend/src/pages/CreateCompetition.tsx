@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const CreateCompetition: React.FC = () => {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [type, setType] = useState<'TOURNAMENT' | 'LEAGUE'>('TOURNAMENT');
   const [format, setFormat] = useState<'BO1' | 'BO3'>('BO1');
@@ -11,9 +13,27 @@ export const CreateCompetition: React.FC = () => {
 
   const navigate = useNavigate();
 
+  if (!user) {
+    return (
+      <div className="max-w-md mx-auto py-12 text-center space-y-3 font-sans">
+        <h2 className="text-lg font-bold text-slate-900">Authentication Required</h2>
+        <p className="text-xs text-slate-500">You must be signed in to create and manage competitions.</p>
+        <Link
+          to="/login"
+          className="inline-block px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded hover:bg-slate-800 transition-colors"
+        >
+          Sign In Now
+        </Link>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setError('Please enter a competition title');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -22,7 +42,8 @@ export const CreateCompetition: React.FC = () => {
       const res = await api.post('/competitions', { name: name.trim(), type, format });
       navigate(`/competitions/${res.data.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create competition.');
+      console.error('Create competition error:', err);
+      setError(err.response?.data?.error || 'Failed to create competition. Please check connection.');
     } finally {
       setLoading(false);
     }
@@ -36,7 +57,7 @@ export const CreateCompetition: React.FC = () => {
         </div>
 
         {error && (
-          <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded text-xs">
+          <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded text-xs font-medium">
             {error}
           </div>
         )}
@@ -51,9 +72,12 @@ export const CreateCompetition: React.FC = () => {
               type="text"
               required
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError('');
+              }}
               placeholder="e.g. eFootball Champions League 2026"
-              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-xs text-slate-900 focus:outline-none"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             />
           </div>
 
@@ -66,7 +90,7 @@ export const CreateCompetition: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setType('TOURNAMENT')}
-                className={`p-3 rounded border text-left flex flex-col justify-between transition-colors ${
+                className={`p-3 rounded border text-left flex flex-col justify-between transition-colors cursor-pointer ${
                   type === 'TOURNAMENT'
                     ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
@@ -79,7 +103,7 @@ export const CreateCompetition: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setType('LEAGUE')}
-                className={`p-3 rounded border text-left flex flex-col justify-between transition-colors ${
+                className={`p-3 rounded border text-left flex flex-col justify-between transition-colors cursor-pointer ${
                   type === 'LEAGUE'
                     ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
@@ -100,7 +124,7 @@ export const CreateCompetition: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFormat('BO1')}
-                className={`py-1.5 px-2 rounded border text-center font-bold text-xs transition-colors ${
+                className={`py-1.5 px-2 rounded border text-center font-bold text-xs transition-colors cursor-pointer ${
                   format === 'BO1'
                     ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -111,7 +135,7 @@ export const CreateCompetition: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFormat('BO3')}
-                className={`py-1.5 px-2 rounded border text-center font-bold text-xs transition-colors ${
+                className={`py-1.5 px-2 rounded border text-center font-bold text-xs transition-colors cursor-pointer ${
                   format === 'BO3'
                     ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -125,8 +149,8 @@ export const CreateCompetition: React.FC = () => {
           {/* Submit button */}
           <button
             type="submit"
-            disabled={loading || !name.trim()}
-            className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded text-xs transition-colors disabled:opacity-50"
+            disabled={loading}
+            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded text-xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             {loading ? 'Creating...' : 'Create Competition'}
           </button>
