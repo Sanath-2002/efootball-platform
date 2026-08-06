@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
@@ -7,6 +7,9 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [searchParams] = useSearchParams();
+  const redirectTarget = searchParams.get('redirect');
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -17,7 +20,7 @@ export const Login: React.FC = () => {
 
     try {
       await login(loginEmail, loginPass);
-      navigate('/dashboard');
+      navigate(redirectTarget || '/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to sign in. Check your credentials.');
     } finally {
@@ -38,6 +41,13 @@ export const Login: React.FC = () => {
 
   return (
     <div className="max-w-sm mx-auto py-10 px-4 space-y-3 font-sans">
+      {redirectTarget === '/competitions/new' && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          Sign in to set up your competition.
+        </div>
+      )}
+
       {/* Quick Demo Admin Banner */}
       <div className="bg-slate-100 border border-slate-200 rounded p-3 flex items-center justify-between gap-2 shadow-xs">
         <div>
@@ -105,7 +115,10 @@ export const Login: React.FC = () => {
 
         <p className="text-center text-xs text-slate-500">
           Need an account?{' '}
-          <Link to="/register" className="text-slate-900 font-bold hover:underline">
+          <Link
+            to={redirectTarget ? `/register?redirect=${encodeURIComponent(redirectTarget)}` : '/register'}
+            className="text-slate-900 font-bold hover:underline"
+          >
             Register
           </Link>
         </p>
@@ -113,3 +126,4 @@ export const Login: React.FC = () => {
     </div>
   );
 };
+

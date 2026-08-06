@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Register: React.FC = () => {
@@ -8,6 +8,9 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [searchParams] = useSearchParams();
+  const redirectTarget = searchParams.get('redirect');
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +22,7 @@ export const Register: React.FC = () => {
 
     try {
       await register(email, password, name);
-      navigate('/dashboard');
+      navigate(redirectTarget || '/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed. Try again.');
     } finally {
@@ -28,7 +31,14 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="max-w-sm mx-auto py-10 px-4 font-sans">
+    <div className="max-w-sm mx-auto py-10 px-4 font-sans space-y-3">
+      {redirectTarget === '/competitions/new' && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          Create an account to set up your competition.
+        </div>
+      )}
+
       <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
         <div>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">Create Coordinator Account</h2>
@@ -96,7 +106,10 @@ export const Register: React.FC = () => {
 
         <p className="text-center text-xs text-slate-500">
           Already registered?{' '}
-          <Link to="/login" className="text-slate-900 font-bold hover:underline">
+          <Link
+            to={redirectTarget ? `/login?redirect=${encodeURIComponent(redirectTarget)}` : '/login'}
+            className="text-slate-900 font-bold hover:underline"
+          >
             Sign in
           </Link>
         </p>
@@ -104,3 +117,4 @@ export const Register: React.FC = () => {
     </div>
   );
 };
+

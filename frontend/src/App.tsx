@@ -1,5 +1,5 @@
 import React, { useState, Component, type ErrorInfo, type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
@@ -95,8 +95,9 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <div className="text-center py-20 text-slate-500">Checking auth session...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   return <>{children}</>;
 };
 

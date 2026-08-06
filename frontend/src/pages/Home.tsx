@@ -52,7 +52,7 @@ export const Home: React.FC = () => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
           <Link
-            to="/register"
+            to="/register?redirect=/competitions/new"
             className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition-colors shadow-sm flex items-center justify-center"
           >
             Create Competition
