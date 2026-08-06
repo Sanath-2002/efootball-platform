@@ -101,11 +101,11 @@ export const Home: React.FC = () => {
                 </h3>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-                Live Engine
+                Automated Table &amp; Stats
               </span>
             </div>
             <p className="text-xs text-slate-500">
-              Instant tie-breaking math: Goal Difference, Goals For, and head-to-head points recalculate on every score entry.
+              Instant standings recalculation for Points, Goal Difference, and Goals For — plus shareable public read-only links for players and spectators.
             </p>
           </div>
 
@@ -180,6 +180,11 @@ export const Home: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          <div className="text-[10px] font-mono text-slate-500 text-center flex items-center justify-center gap-1.5 pt-1">
+            <Activity className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            Live goal statistics &amp; shareable public view link
+          </div>
         </div>
 
         {/* Real Knockout Bracket Preview */}
@@ -189,15 +194,15 @@ export const Home: React.FC = () => {
               <div className="flex items-center gap-2">
                 <GitFork className="w-4 h-4 text-emerald-600" />
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                  Knockout Draw &amp; BYE Advancement
+                  Single-Elimination Knockout Draw
                 </h3>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-                Binary Tree
+                Automatic Advancement
               </span>
             </div>
             <p className="text-xs text-slate-500">
-              Single-elimination brackets with automatic BYE allocation when team counts are non-powers of 2 (e.g. 6, 10, 14 teams).
+              Tournament brackets with automatic BYE seeding for any team count (e.g. 6, 10, 14 teams).
             </p>
           </div>
 
@@ -233,47 +238,15 @@ export const Home: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="text-[10px] font-mono text-slate-500 text-center flex items-center justify-center gap-1">
-              <Shield className="w-3 h-3 text-emerald-600" />
-              Winners advance &amp; auto-populate parent match slots instantly
+            <div className="text-[10px] font-mono text-slate-500 text-center flex items-center justify-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              Winners advance automatically to the next round as scores are saved
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Feature Highlights Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 shadow-xs">
-          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-            <Activity className="w-4 h-4" />
-          </div>
-          <h4 className="text-xs font-bold text-slate-900 uppercase">Real-Time Stats &amp; Leaders</h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Tracks Top Offense, Best Defense, Goal Differences, and Highest Scoring Matches recalculate after every result.
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 shadow-xs">
-          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-            <Trophy className="w-4 h-4" />
-          </div>
-          <h4 className="text-xs font-bold text-slate-900 uppercase">Auto Champion Detection</h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Celebration modals trigger automatically when the final match score is submitted or the league schedule completes.
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 shadow-xs">
-          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-            <Shield className="w-4 h-4" />
-          </div>
-          <h4 className="text-xs font-bold text-slate-900 uppercase">Public Read-Only URLs</h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Share clean, spectator-friendly URLs with players and fans to track fixtures and standings live without signing in.
-          </p>
         </div>
       </section>
     </div>
   );
 };
+
 
