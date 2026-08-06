@@ -32,7 +32,7 @@ export const Register: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
         <div>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">Create Coordinator Account</h2>
-          <p className="text-xs text-slate-500 font-mono mt-0.5">Register account</p>
+          <p className="text-xs text-slate-500 font-mono mt-0.5">Host custom leagues, knockout brackets, and track live stats.</p>
         </div>
 
         {error && (

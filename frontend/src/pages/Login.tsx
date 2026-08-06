@@ -56,7 +56,7 @@ export const Login: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
         <div>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">Coordinator Sign In</h2>
-          <p className="text-xs text-slate-500 font-mono mt-0.5">Access competition manager</p>
+          <p className="text-xs text-slate-500 font-mono mt-0.5">Manage competitions, update match scores, and track standings.</p>
         </div>
 
         {error && (

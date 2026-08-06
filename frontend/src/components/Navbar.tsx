@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
@@ -9,6 +9,10 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isLoginPage = location.pathname === '/login';
+  const isRegisterPage = location.pathname === '/register';
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30 h-14 flex items-center px-4 sm:px-6 lg:px-8">
@@ -60,18 +64,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link
-                to="/login"
-                className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                className="px-3.5 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded shadow-xs transition-colors"
-              >
-                Register
-              </Link>
+              {!isLoginPage && (
+                <Link
+                  to="/login"
+                  className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
+              {!isRegisterPage && (
+                <Link
+                  to="/register"
+                  className="px-3.5 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded shadow-xs transition-colors"
+                >
+                  Register
+                </Link>
+              )}
             </div>
           )}
         </div>
