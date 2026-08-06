@@ -9,14 +9,20 @@ test.describe('eFootball SaaS Competition Platform End-to-End Tests', () => {
     await expect(page.getByText('Automated League Standings & Tournament Draw Sheets')).toBeVisible();
   });
 
-  test('Coordinator login with 1-click test admin credentials', async ({ page }) => {
+  test('Coordinator login with default test admin credentials', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
-    await expect(page.getByText('1-Click Test Admin Sign In')).toBeVisible();
+    await expect(page.getByText('Default Test Admin')).toBeVisible();
 
-    await page.getByRole('button', { name: '1-Click Test Admin Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign In' }).first().click();
 
     // Verify redirected to dashboard
     await expect(page).toHaveURL(/.*dashboard/);
     await expect(page.getByText('Competitions Directory')).toBeVisible();
+
+    // Verify navigating to root '/' while authenticated redirects back to /dashboard
+    await page.goto(BASE_URL);
+    await expect(page).toHaveURL(/.*dashboard/);
+    await expect(page.getByText('Competitions Directory')).toBeVisible();
   });
 });
+
