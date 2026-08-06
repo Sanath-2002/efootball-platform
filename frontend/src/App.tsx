@@ -71,7 +71,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </main>
         <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500 bg-white">
-          eFootball Competition Manager • Managed Tournament System
+          eFootball Competition Manager • Real-Time Standings &amp; Draw Sheets
         </footer>
       </div>
     );
@@ -86,7 +86,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </main>
         <footer className="border-t border-slate-200 py-4 text-center text-xs text-slate-500 bg-white">
-          eFootball Competition Manager • Managed Tournament System
+          eFootball Competition Manager • Real-Time Standings &amp; Draw Sheets
         </footer>
       </div>
     </div>

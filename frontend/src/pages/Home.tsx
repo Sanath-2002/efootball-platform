@@ -38,7 +38,7 @@ export const Home: React.FC = () => {
       <section className="text-center space-y-4 pt-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-700/50 text-emerald-400 font-mono text-[11px] font-semibold tracking-wider">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          eFootball Competition Manager
+          Automated Tournament &amp; League Platform
         </div>
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-3xl mx-auto">
@@ -53,9 +53,8 @@ export const Home: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
           <Link
             to="/register"
-            className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition-colors shadow-sm flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition-colors shadow-sm flex items-center justify-center"
           >
-            <Trophy className="w-4 h-4 text-emerald-100" />
             Create Competition
           </Link>
           <Link
