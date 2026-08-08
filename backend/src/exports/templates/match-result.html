@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet">
+    {{> masthead subtitle=subtitle}}
+    <div class="result-stage content-body">
+      <div class="result-meta">Round {{match.round}} · Match {{match.matchNumber}}</div>
+      <div class="result-grid">
+        <div class="result-team">
+          {{#if match.homeLogo}}
+          <img class="result-crest" src="{{match.homeLogo}}" alt="" />
+          {{else}}
+          <div class="result-crest-fallback" style="background: {{match.homeColor}}">{{match.homeMonogram}}</div>
+          {{/if}}
+          <div class="result-team-name">{{match.homeName}}</div>
+        </div>
+        <div class="result-score">{{match.homeScore}}<span class="score-sep">–</span>{{match.awayScore}}</div>
+        <div class="result-team">
+          {{#if match.awayLogo}}
+          <img class="result-crest" src="{{match.awayLogo}}" alt="" />
+          {{else}}
+          <div class="result-crest-fallback" style="background: {{match.awayColor}}">{{match.awayMonogram}}</div>
+          {{/if}}
+          <div class="result-team-name">{{match.awayName}}</div>
+        </div>
+      </div>
+      {{#if match.winnerName}}
+      <div class="result-winner">Winner · {{match.winnerName}}</div>
+      {{/if}}
+    </div>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

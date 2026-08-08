@@ -3,15 +3,24 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+type CompetitionTypeOption =
+  | 'TOURNAMENT'
+  | 'LEAGUE'
+  | 'GROUP_STAGE'
+  | 'GROUP_KNOCKOUT';
+
 export const CreateCompetition: React.FC = () => {
   const { user } = useAuth();
   const [name, setName] = useState('');
-  const [type, setType] = useState<'TOURNAMENT' | 'LEAGUE'>('TOURNAMENT');
+  const [type, setType] = useState<CompetitionTypeOption>('TOURNAMENT');
   const [format, setFormat] = useState<'BO1' | 'BO3'>('BO1');
+  const [groupCount, setGroupCount] = useState<2 | 4 | 8>(4);
+  const [advancementPerGroup, setAdvancementPerGroup] = useState(2);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const navigate = useNavigate();
+  const isGroupFormat = type === 'GROUP_STAGE' || type === 'GROUP_KNOCKOUT';
 
   if (!user) {
     return (
@@ -39,18 +48,38 @@ export const CreateCompetition: React.FC = () => {
     setError('');
 
     try {
-      const res = await api.post('/competitions', { name: name.trim(), type, format });
+      const payload: Record<string, unknown> = { name: name.trim(), type, format };
+      if (isGroupFormat) {
+        payload.groupCount = groupCount;
+        if (type === 'GROUP_KNOCKOUT') {
+          payload.advancementPerGroup = advancementPerGroup;
+        }
+      }
+
+      const res = await api.post('/competitions', payload);
       navigate(`/competitions/${res.data.id}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
       console.error('Create competition error:', err);
-      setError(err.response?.data?.error || 'Failed to create competition. Please check connection.');
+      setError(e.response?.data?.error || 'Failed to create competition. Please check connection.');
     } finally {
       setLoading(false);
     }
   };
 
+  const formatCards: { id: CompetitionTypeOption; title: string; desc: string }[] = [
+    { id: 'TOURNAMENT', title: 'Knockout Tournament', desc: 'Single elimination with BYE math' },
+    { id: 'LEAGUE', title: 'Round-Robin League', desc: 'All play all with live points table' },
+    { id: 'GROUP_STAGE', title: 'Group Stage', desc: 'Round-robin within groups; winner by standings' },
+    {
+      id: 'GROUP_KNOCKOUT',
+      title: 'Group + Knockout',
+      desc: 'Groups then top teams advance to bracket',
+    },
+  ];
+
   return (
-    <div className="max-w-md mx-auto py-6 font-sans">
+    <div className="max-w-lg mx-auto py-6 font-sans">
       <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
         <div>
           <h1 className="text-lg font-bold text-slate-900 tracking-tight">Create Competition</h1>
@@ -63,7 +92,6 @@ export const CreateCompetition: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Competition Name */}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
               Competition Title
@@ -81,41 +109,79 @@ export const CreateCompetition: React.FC = () => {
             />
           </div>
 
-          {/* Type Selection */}
           <div className="space-y-1">
             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
               Format Type
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setType('TOURNAMENT')}
-                className={`p-3 rounded border text-left flex flex-col justify-between transition-colors cursor-pointer ${
-                  type === 'TOURNAMENT'
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <h4 className="font-bold text-xs">Knockout Tournament</h4>
-                <p className="text-[10px] text-slate-400 leading-tight">Single elimination with BYE math</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setType('LEAGUE')}
-                className={`p-3 rounded border text-left flex flex-col justify-between transition-colors cursor-pointer ${
-                  type === 'LEAGUE'
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <h4 className="font-bold text-xs">Round-Robin League</h4>
-                <p className="text-[10px] text-slate-400 leading-tight">All play all with live points table</p>
-              </button>
+              {formatCards.map((card) => (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() => setType(card.id)}
+                  className={`p-3 rounded border text-left flex flex-col justify-between transition-colors cursor-pointer ${
+                    type === card.id
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <h4 className="font-bold text-xs">{card.title}</h4>
+                  <p
+                    className={`text-[10px] leading-tight ${
+                      type === card.id ? 'text-slate-300' : 'text-slate-400'
+                    }`}
+                  >
+                    {card.desc}
+                  </p>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Match Format */}
+          {isGroupFormat && (
+            <div className="space-y-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Number of Groups
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([2, 4, 8] as const).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setGroupCount(n)}
+                      className={`py-1.5 px-2 rounded border text-center font-bold text-xs transition-colors cursor-pointer ${
+                        groupCount === n
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {n} Groups
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {type === 'GROUP_KNOCKOUT' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Teams Advancing per Group
+                  </label>
+                  <select
+                    value={advancementPerGroup}
+                    onChange={(e) => setAdvancementPerGroup(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded text-xs"
+                  >
+                    <option value={1}>Top 1</option>
+                    <option value={2}>Top 2</option>
+                    <option value={3}>Top 3</option>
+                    <option value={4}>Top 4</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
               Match Length
@@ -146,7 +212,6 @@ export const CreateCompetition: React.FC = () => {
             </div>
           </div>
 
-          {/* Submit button */}
           <button
             type="submit"
             disabled={loading}

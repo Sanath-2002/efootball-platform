@@ -6,7 +6,7 @@ interface ChampionModalProps {
   onClose: () => void;
   championName: string;
   competitionName: string;
-  competitionType: 'TOURNAMENT' | 'LEAGUE';
+  competitionType: 'TOURNAMENT' | 'LEAGUE' | 'GROUP_STAGE' | 'GROUP_KNOCKOUT';
   runnerUpName?: string | null;
 }
 
@@ -30,7 +30,10 @@ export const ChampionModal: React.FC<ChampionModalProps> = ({
         {/* Celebration Header */}
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 border border-amber-300 text-amber-900 rounded-full font-mono text-[10px] font-extrabold uppercase tracking-widest">
-            🏆 {competitionType === 'TOURNAMENT' ? 'Tournament Champions' : 'League Champions'}
+            🏆{' '}
+            {competitionType === 'TOURNAMENT' || competitionType === 'GROUP_KNOCKOUT'
+              ? 'Tournament Champions'
+              : 'League Champions'}
           </div>
           <p className="text-[11px] text-slate-500 font-mono pt-1 truncate">{competitionName}</p>
         </div>

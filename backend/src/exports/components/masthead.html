@@ -1,0 +1,12 @@
+<header class="masthead">
+  {{#if competition.logoUrl}}
+  <img class="masthead-logo" src="{{competition.logoUrl}}" alt="" />
+  {{else}}
+  <div class="masthead-logo-fallback">{{competitionInitial}}</div>
+  {{/if}}
+  <div class="masthead-text">
+    <div class="season">{{competition.season}} Season</div>
+    <h1 class="title">{{competition.name}}</h1>
+    {{#if subtitle}}<div class="context">{{subtitle}}</div>{{/if}}
+  </div>
+</header>

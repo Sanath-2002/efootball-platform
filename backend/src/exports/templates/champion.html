@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet">
+    {{> masthead subtitle=subtitle}}
+    <div class="champion-stage content-body">
+      <div class="champion-fill">
+        <div class="champion-badge">Champions</div>
+        {{#if championTeam.logoUrl}}
+        <img class="champion-crest" src="{{championTeam.logoUrl}}" alt="" />
+        {{else}}
+        <div class="champion-crest-fallback" style="background: {{championTeam.colorPrimary}}">{{championTeam.monogram}}</div>
+        {{/if}}
+        <div class="champion-name">{{championTeam.name}}</div>
+      </div>
+    </div>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

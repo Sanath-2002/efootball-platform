@@ -5,9 +5,14 @@ import { KitBadge } from './KitBadge';
 interface LeagueTableProps {
   standings: StandingRow[];
   championName?: string | null;
+  qualifiedCount?: number;
 }
 
-export const LeagueTable: React.FC<LeagueTableProps> = ({ standings, championName }) => {
+export const LeagueTable: React.FC<LeagueTableProps> = ({
+  standings,
+  championName,
+  qualifiedCount,
+}) => {
   if (!standings || standings.length === 0) {
     return (
       <div className="text-center py-10 bg-white rounded-lg border border-slate-200 text-slate-500 text-xs font-medium">
@@ -38,12 +43,15 @@ export const LeagueTable: React.FC<LeagueTableProps> = ({ standings, championNam
             {standings.map((row, index) => {
               const rank = index + 1;
               const isChampion = championName && row.name === championName;
+              const isQualified = qualifiedCount != null && rank <= qualifiedCount;
 
               return (
                 <tr
                   key={row.teamId}
                   className={`hover:bg-slate-50 transition-colors ${
-                    rank === 1
+                    isQualified
+                      ? 'bg-emerald-50/60 font-semibold'
+                      : rank === 1
                       ? 'bg-emerald-50/40 font-semibold'
                       : rank <= 4
                       ? 'bg-slate-50/30'
@@ -68,6 +76,11 @@ export const LeagueTable: React.FC<LeagueTableProps> = ({ standings, championNam
                     {isChampion && (
                       <span className="text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-800 font-extrabold uppercase rounded border border-emerald-300">
                         Champion
+                      </span>
+                    )}
+                    {isQualified && !isChampion && (
+                      <span className="text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-800 font-bold uppercase rounded">
+                        Q
                       </span>
                     )}
                   </td>

@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: efootball-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: efootball
+      POSTGRES_PASSWORD: efootball
+      POSTGRES_DB: efootball
+    ports:
+      - "5432:5432"
+    volumes:
+      - efootball_pg_data:/var/lib/postgresql/data
+
+volumes:
+  efootball_pg_data:

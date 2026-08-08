@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet">
+    {{> masthead subtitle=subtitle}}
+    <div class="content-body">
+      {{> stat-tiles items=tournamentStatTiles}}
+
+      {{#if stats.topOffense}}
+      {{> highlight-capsule label="Top Attack" value=stats.topOffense.name detail=topOffenseDetail}}
+      {{/if}}
+      {{#if stats.topDefense}}
+      {{> highlight-capsule label="Best Defense" value=stats.topDefense.name detail=topDefenseDetail}}
+      {{/if}}
+      {{#if stats.topScorer}}
+      {{> highlight-capsule label="Golden Boot" value=stats.topScorer.name detail=topScorerDetail}}
+      {{/if}}
+      {{#if stats.highestScoringMatch}}
+      {{> highlight-capsule label="Highest Scoring" value=highestScoringLabel detail=highestScoringDetail}}
+      {{/if}}
+    </div>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<div class="form-strip">
+  {{#each formSlots}}
+  {{#if this}}<span class="form-square {{toLowerCase this}}">{{this}}</span>{{else}}<span class="form-empty"></span>{{/if}}
+  {{/each}}
+</div>

@@ -1,0 +1,13 @@
+<div class="row-grid mini-row cols-mini">
+  <div class="cell-pos"><span class="position">{{position}}</span></div>
+  <div class="cell-club">
+    {{#if logoUrl}}
+    <img class="crest" src="{{logoUrl}}" alt="" />
+    {{else}}
+    <span class="crest-fallback" style="background: {{crestColor}}">{{monogram}}</span>
+    {{/if}}
+    <span class="club-name">{{name}}</span>
+  </div>
+  <div class="cell-gd"><span class="gd-{{gdClass}}">{{gdDisplay}}</span></div>
+  <div class="cell-points">{{points}}</div>
+</div>

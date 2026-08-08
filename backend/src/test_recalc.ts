@@ -13,7 +13,7 @@ async function testRecalculation() {
       name: 'Knockout Recalc Test',
       slug: `recalc-tourney-${Date.now()}`,
       type: 'TOURNAMENT',
-      coordinatorId: user.id,
+      ownerId: user.id,
     },
   });
 
@@ -34,25 +34,25 @@ async function testRecalculation() {
   const finalMatch = matches.find((m) => m.round === 2 && m.matchNumber === 1)!;
 
   // Enter R1M1 score: 3 - 1 (Home wins)
-  await updateMatchScoreAndRecalculate(r1m1.id, 3, 1, user.id);
+  await updateMatchScoreAndRecalculate(r1m1.id, { homeScore: 3, awayScore: 1 });
 
   let updatedFinal = await prisma.match.findUnique({ where: { id: finalMatch.id } });
   console.log(`✅ Round 1 Match 1 score entered (3-1). Parent Final Home Team auto-set to:`, updatedFinal?.homeTeamId);
 
   // Enter R1M2 score: 0 - 2 (Away wins)
-  await updateMatchScoreAndRecalculate(r1m2.id, 0, 2, user.id);
+  await updateMatchScoreAndRecalculate(r1m2.id, { homeScore: 0, awayScore: 2 });
 
   updatedFinal = await prisma.match.findUnique({ where: { id: finalMatch.id } });
   console.log(`✅ Round 1 Match 2 score entered (0-2). Parent Final Away Team auto-set to:`, updatedFinal?.awayTeamId);
 
   // Edit R1M1 score to 1 - 4 (Away wins instead!)
-  await updateMatchScoreAndRecalculate(r1m1.id, 1, 4, user.id);
+  await updateMatchScoreAndRecalculate(r1m1.id, { homeScore: 1, awayScore: 4 });
 
   updatedFinal = await prisma.match.findUnique({ where: { id: finalMatch.id } });
   console.log(`✅ Edited Round 1 Match 1 score to 1-4. Parent Final Home Team re-calculated to:`, updatedFinal?.homeTeamId);
 
   // Complete Final Match: 2 - 1
-  await updateMatchScoreAndRecalculate(finalMatch.id, 2, 1, user.id);
+  await updateMatchScoreAndRecalculate(finalMatch.id, { homeScore: 2, awayScore: 1 });
 
   const stats = await calculateCompetitionStats(tourney.id);
   console.log(`🏆 Tournament Finished! Champion: ${stats.champion}, Runner-up: ${stats.runnerUp}`);

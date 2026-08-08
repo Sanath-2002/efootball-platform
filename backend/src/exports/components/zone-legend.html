@@ -1,0 +1,10 @@
+{{#if legend.length}}
+<div class="legend">
+  {{#each legend}}
+  <span class="legend-item">
+    <span class="legend-swatch" style="background: var(--{{colorVar}})"></span>
+    {{label}}
+  </span>
+  {{/each}}
+</div>
+{{/if}}

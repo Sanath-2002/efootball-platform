@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Competition } from '../services/api';
+import { FollowerCount } from '../components/FollowerCount';
 
 export const Dashboard: React.FC = () => {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -131,6 +132,8 @@ export const Dashboard: React.FC = () => {
                     <span>{c._count?.teams || 0} Teams</span>
                     <span>•</span>
                     <span>{c._count?.matches || 0} Matches</span>
+                    <span>•</span>
+                    <FollowerCount count={c.followerCount ?? 0} />
                   </div>
                 </div>
 
