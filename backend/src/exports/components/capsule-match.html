@@ -1,0 +1,25 @@
+<div class="capsule-match {{#if completed}}is-completed{{else}}is-upcoming{{/if}}">
+  <div class="capsule-match-meta">Round {{round}} · Match {{matchNumber}}</div>
+  <div class="capsule-match-grid">
+    <div class="capsule-match-side">
+      {{#if homeLogo}}
+      <img class="crest" src="{{homeLogo}}" alt="" />
+      {{else}}
+      <span class="crest-fallback" style="background: {{homeColor}}">{{homeMonogram}}</span>
+      {{/if}}
+      <span class="club-name">{{homeName}}</span>
+    </div>
+    <div class="capsule-match-score">
+      {{#if completed}}{{homeScore}}<span class="score-sep">–</span>{{awayScore}}{{else}}VS{{/if}}
+    </div>
+    <div class="capsule-match-side is-away">
+      {{#if awayLogo}}
+      <img class="crest" src="{{awayLogo}}" alt="" />
+      {{else}}
+      <span class="crest-fallback" style="background: {{awayColor}}">{{awayMonogram}}</span>
+      {{/if}}
+      <span class="club-name">{{awayName}}</span>
+    </div>
+  </div>
+  {{#if scheduledAt}}<div class="capsule-match-when">{{scheduledAt}}</div>{{/if}}
+</div>

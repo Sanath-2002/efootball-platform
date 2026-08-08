@@ -1,0 +1,32 @@
+<div class="row-grid team-row {{rowStateClass}} {{layout.colsClass}}">
+  <div class="cell-pos">
+    {{#if marker}}<span class="marker marker-{{markerKind}}">{{marker}}</span>{{/if}}
+    <span class="position">{{position}}</span>
+    {{#if zoneKey}}<span class="zone-bar zone-{{zoneKey}}"></span>{{/if}}
+  </div>
+
+  <div class="cell-club">
+    {{#if logoUrl}}
+    <img class="crest" src="{{logoUrl}}" alt="" />
+    {{else}}
+    <span class="crest-fallback" style="background: {{crestColor}}">{{monogram}}</span>
+    {{/if}}
+    <span class="club-name">{{name}}</span>
+  </div>
+
+  <div class="cell-stat">{{played}}</div>
+  {{#if layout.showWDL}}
+  <div class="cell-stat">{{won}}</div>
+  <div class="cell-stat">{{drawn}}</div>
+  <div class="cell-stat">{{lost}}</div>
+  {{/if}}
+  {{#if layout.showGoals}}
+  <div class="cell-stat">{{goalsFor}}</div>
+  <div class="cell-stat">{{goalsAgainst}}</div>
+  {{/if}}
+  <div class="cell-gd"><span class="gd-{{gdClass}}">{{gdDisplay}}</span></div>
+  {{#if layout.showForm}}
+  <div class="cell-form">{{> form-strip}}</div>
+  {{/if}}
+  <div class="cell-points">{{points}}</div>
+</div>

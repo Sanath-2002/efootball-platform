@@ -30,7 +30,7 @@ async function runTests() {
         name: `Test Tournament ${count} Teams`,
         slug: `test-tourney-${count}-${Date.now()}`,
         type: 'TOURNAMENT',
-        coordinatorId: user.id,
+        ownerId: user.id,
       },
     });
 
@@ -66,7 +66,7 @@ async function runTests() {
         name: `Test League ${count} Teams`,
         slug: `test-league-${count}-${Date.now()}`,
         type: 'LEAGUE',
-        coordinatorId: user.id,
+        ownerId: user.id,
       },
     });
 

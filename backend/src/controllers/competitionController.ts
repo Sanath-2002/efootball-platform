@@ -1,8 +1,14 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { asyncHandler } from '../lib/asyncHandler';
+import { notFound } from '../lib/AppError';
+import {
+  createOwnerMembership,
+  getMembership,
+} from '../services/membershipService';
+import { CompetitionType, MatchFormat } from '@prisma/client';
 
-// Helper to generate URL-friendly slug
 const generateSlug = (name: string): string => {
   const base = name
     .toLowerCase()
@@ -12,179 +18,233 @@ const generateSlug = (name: string): string => {
   return base || 'competition';
 };
 
-export const createCompetition = async (req: AuthRequest, res: Response) => {
-  try {
-    const { name, type, format } = req.body;
-    const coordinatorId = req.user?.id;
-
-    if (!coordinatorId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    if (!name || !type) {
-      return res.status(400).json({ error: 'Name and type (TOURNAMENT or LEAGUE) are required' });
-    }
-
-    if (!['TOURNAMENT', 'LEAGUE'].includes(type)) {
-      return res.status(400).json({ error: 'Invalid competition type' });
-    }
-
-    let slug = generateSlug(name);
-    let existing = await prisma.competition.findUnique({ where: { slug } });
-    if (existing) {
-      slug = `${slug}-${Math.floor(1000 + Math.random() * 9000)}`;
-    }
-
-    const competition = await prisma.competition.create({
-      data: {
-        name,
-        slug,
-        type,
-        format: format || 'BO1',
-        status: 'DRAFT',
-        coordinatorId,
-      },
-    });
-
-    return res.status(201).json(competition);
-  } catch (error: any) {
-    console.error('Create competition error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+const competitionInclude = {
+  owner: { select: { id: true, name: true, email: true } },
+  groups: { orderBy: { sortOrder: 'asc' as const } },
+  teams: {
+    orderBy: { name: 'asc' as const },
+    include: {
+      players: { orderBy: { sortOrder: 'asc' as const } },
+      captain: true,
+      group: true,
+    },
+  },
+  matches: {
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      winner: true,
+      group: true,
+      games: { orderBy: { gameNumber: 'asc' as const } },
+      screenshots: { orderBy: { createdAt: 'desc' as const } },
+    },
+    orderBy: [{ round: 'asc' as const }, { matchNumber: 'asc' as const }],
+  },
 };
 
-export const getMyCompetitions = async (req: AuthRequest, res: Response) => {
-  try {
-    const coordinatorId = req.user?.id;
-    if (!coordinatorId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+const attachFollowMeta = async (
+  competition: { id: string; followerCount?: number },
+  userId: string | undefined
+) => {
+  let followerCount = competition.followerCount;
+  if (followerCount === undefined) {
+    const row = await prisma.competition.findUnique({
+      where: { id: competition.id },
+      select: { followerCount: true },
+    });
+    followerCount = row?.followerCount ?? 0;
+  }
 
-    const competitions = await prisma.competition.findMany({
-      where: { coordinatorId },
-      include: {
-        _count: {
-          select: { teams: true, matches: true },
+  let isFollowing = false;
+  if (userId) {
+    const follow = await prisma.competitionFollow.findUnique({
+      where: { competitionId_userId: { competitionId: competition.id, userId } },
+    });
+    isFollowing = !!follow;
+  }
+  return { followerCount, isFollowing };
+};
+
+const attachViewerPermissions = async (
+  competition: { id: string },
+  userId: string | undefined
+) => {
+  const followMeta = await attachFollowMeta(competition, userId);
+  if (!userId) {
+    return { ...competition, viewerPermissions: [] as string[], ...followMeta };
+  }
+  const membership = await getMembership(competition.id, userId);
+  return {
+    ...competition,
+    viewerPermissions: membership?.permissions ?? [],
+    ...followMeta,
+  };
+};
+
+export const createCompetition = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { name, type, format, description, groupCount, advancementPerGroup } = req.body;
+  const ownerId = req.user?.id;
+
+  if (!ownerId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  let slug = generateSlug(name);
+  const existing = await prisma.competition.findUnique({ where: { slug } });
+  if (existing) {
+    slug = `${slug}-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+
+  const competition = await prisma.competition.create({
+    data: {
+      name,
+      slug,
+      type: type as CompetitionType,
+      format: (format as MatchFormat) || MatchFormat.BO1,
+      description: description || null,
+      groupCount: groupCount ?? null,
+      advancementPerGroup: advancementPerGroup ?? 2,
+      ownerId,
+    },
+  });
+
+  await createOwnerMembership(competition.id, ownerId);
+
+  const result = await attachViewerPermissions(competition, ownerId);
+  return res.status(201).json(result);
+});
+
+export const getMyCompetitions = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const memberships = await prisma.competitionMember.findMany({
+    where: { userId },
+    include: {
+      competition: {
+        include: {
+          _count: { select: { teams: true, matches: true } },
+          owner: { select: { id: true, name: true } },
         },
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
-    return res.json(competitions);
-  } catch (error: any) {
-    console.error('Get my competitions error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+  const competitions = await Promise.all(
+    memberships.map(async (m) =>
+      attachViewerPermissions(
+        { ...m.competition, membershipRole: m.role } as typeof m.competition & { membershipRole: typeof m.role },
+        userId
+      )
+    )
+  );
+
+  return res.json(competitions);
+});
+
+export const getCompetitionById = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const userId = req.user?.id;
+
+  const competition = await prisma.competition.findUnique({
+    where: { id },
+    include: competitionInclude,
+  });
+
+  if (!competition) {
+    throw notFound('Competition not found');
   }
-};
 
-export const getCompetitionById = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const competition = await prisma.competition.findUnique({
-      where: { id },
-      include: {
-        coordinator: { select: { id: true, name: true, email: true } },
-        teams: { orderBy: { name: 'asc' } },
-        matches: {
-          include: {
-            homeTeam: true,
-            awayTeam: true,
-            winner: true,
-          },
-          orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }],
+  const membership = userId ? await getMembership(id, userId) : null;
+  if (!membership) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  return res.json({ ...competition, viewerPermissions: membership.permissions });
+});
+
+export const updateCompetition = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { name, format, description, logoUrl, bannerUrl } = req.body;
+
+  const existing = await prisma.competition.findUnique({ where: { id } });
+  if (!existing) {
+    throw notFound('Competition not found');
+  }
+
+  const updated = await prisma.competition.update({
+    where: { id },
+    data: {
+      ...(name !== undefined && { name }),
+      ...(format !== undefined && { format: format as MatchFormat }),
+      ...(description !== undefined && { description }),
+      ...(logoUrl !== undefined && { logoUrl }),
+      ...(bannerUrl !== undefined && { bannerUrl }),
+    },
+  });
+
+  const result = await attachViewerPermissions(updated, req.user?.id);
+  return res.json(result);
+});
+
+export const deleteCompetition = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+
+  const existing = await prisma.competition.findUnique({ where: { id } });
+  if (!existing) {
+    throw notFound('Competition not found');
+  }
+
+  await prisma.competition.delete({ where: { id } });
+  return res.json({ message: 'Competition deleted successfully' });
+});
+
+export const getPublicCompetitionBySlug = asyncHandler(async (req: Request, res: Response) => {
+  const { slug } = req.params;
+  const authHeader = req.headers.authorization;
+  let userId: string | undefined;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const jwt = await import('jsonwebtoken');
+      const { getJwtSecret } = await import('../config/env');
+      const decoded = jwt.verify(authHeader.slice(7), getJwtSecret()) as { id: string };
+      userId = decoded.id;
+    } catch {
+      userId = undefined;
+    }
+  }
+
+  const competition = await prisma.competition.findUnique({
+    where: { slug },
+    include: {
+      owner: { select: { name: true } },
+      teams: {
+        orderBy: { name: 'asc' },
+        include: {
+          players: { orderBy: { sortOrder: 'asc' } },
+          captain: true,
         },
       },
-    });
-
-    if (!competition) {
-      return res.status(404).json({ error: 'Competition not found' });
-    }
-
-    return res.json(competition);
-  } catch (error: any) {
-    console.error('Get competition error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-export const updateCompetition = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { name, format } = req.body;
-    const coordinatorId = req.user?.id;
-
-    const existing = await prisma.competition.findUnique({ where: { id } });
-    if (!existing) {
-      return res.status(404).json({ error: 'Competition not found' });
-    }
-
-    if (existing.coordinatorId !== coordinatorId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this competition' });
-    }
-
-    const updated = await prisma.competition.update({
-      where: { id },
-      data: {
-        name: name !== undefined ? name : existing.name,
-        format: format !== undefined ? format : existing.format,
-      },
-    });
-
-    return res.json(updated);
-  } catch (error: any) {
-    console.error('Update competition error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-export const deleteCompetition = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const coordinatorId = req.user?.id;
-
-    const existing = await prisma.competition.findUnique({ where: { id } });
-    if (!existing) {
-      return res.status(404).json({ error: 'Competition not found' });
-    }
-
-    if (existing.coordinatorId !== coordinatorId) {
-      return res.status(403).json({ error: 'Forbidden: You do not own this competition' });
-    }
-
-    await prisma.competition.delete({ where: { id } });
-    return res.json({ message: 'Competition deleted successfully' });
-  } catch (error: any) {
-    console.error('Delete competition error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-export const getPublicCompetitionBySlug = async (req: Request, res: Response) => {
-  try {
-    const { slug } = req.params;
-    const competition = await prisma.competition.findUnique({
-      where: { slug },
-      include: {
-        coordinator: { select: { name: true } },
-        teams: { orderBy: { name: 'asc' } },
-        matches: {
-          include: {
-            homeTeam: true,
-            awayTeam: true,
-            winner: true,
-          },
-          orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }],
+      matches: {
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+          winner: true,
+          games: { orderBy: { gameNumber: 'asc' } },
+          screenshots: { orderBy: { createdAt: 'desc' } },
         },
+        orderBy: [{ round: 'asc' }, { matchNumber: 'asc' }],
       },
-    });
+    },
+  });
 
-    if (!competition) {
-      return res.status(404).json({ error: 'Competition not found' });
-    }
-
-    return res.json(competition);
-  } catch (error: any) {
-    console.error('Get public competition error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+  if (!competition) {
+    throw notFound('Competition not found');
   }
-};
+
+  const followMeta = await attachFollowMeta(competition, userId);
+  return res.json({ ...competition, viewerPermissions: [], ...followMeta });
+});

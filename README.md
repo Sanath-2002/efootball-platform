@@ -45,4 +45,14 @@ To verify fixture generation (with BYE math) and recalculation engine:
 cd backend
 npx tsx src/test_generator.ts
 npx tsx src/test_recalc.ts
+npm run test:suite
+```
+
+### Export graphics (Playwright)
+
+Graphic exports (PDF, PNG, JPEG) render HTML templates with Playwright Chromium. After installing backend dependencies, install the browser once:
+
+```bash
+cd backend
+npx playwright install chromium
 ```

@@ -45,6 +45,9 @@ Thumbs.db
 **/.vite/
 .eslintcache
 
+# Local screenshot uploads
+backend/uploads/
+
 # Playwright
 /test-results/
 /playwright-report/

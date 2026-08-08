@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { NotificationBell } from './NotificationBell';
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -46,6 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <div className="text-xs text-right">
                 <span className="font-bold text-slate-900 block leading-tight">{user.name}</span>
                 <span className="text-[10px] text-slate-500 font-mono leading-tight">{user.email}</span>

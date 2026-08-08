@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet">
+    {{> masthead subtitle=subtitle}}
+    <div class="content-body">
+      {{#unless fixtures.length}}
+      <div class="empty-state">No upcoming fixtures</div>
+      {{/unless}}
+      {{#each fixtures}}
+      {{> capsule-match}}
+      {{/each}}
+    </div>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

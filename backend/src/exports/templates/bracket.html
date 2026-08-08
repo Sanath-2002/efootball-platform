@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet">
+    {{> masthead subtitle=subtitle}}
+    <div class="bracket-board content-body">
+      {{#each bracketRounds}}
+      <div class="bracket-col">
+        <div class="bracket-col-title">{{label}}</div>
+        {{#each slots}}
+        <div class="bracket-slot {{#if isFinal}}is-final{{/if}}">
+          <div class="bracket-team {{#if homeWinner}}is-winner{{/if}} {{#unless homeName}}is-tbd{{/unless}}">
+            {{#if homeLogo}}<img class="bracket-crest" src="{{homeLogo}}" alt="" />{{else}}
+            <span class="bracket-crest-fallback" style="background: {{homeColor}}">{{homeMonogram}}</span>{{/if}}
+            <span>{{homeName}}</span>
+            {{#if completed}}<span class="bracket-team-score">{{homeScore}}</span>{{/if}}
+          </div>
+          <div class="bracket-team {{#if awayWinner}}is-winner{{/if}} {{#unless awayName}}is-tbd{{/unless}}">
+            {{#if awayLogo}}<img class="bracket-crest" src="{{awayLogo}}" alt="" />{{else}}
+            <span class="bracket-crest-fallback" style="background: {{awayColor}}">{{awayMonogram}}</span>{{/if}}
+            <span>{{awayName}}</span>
+            {{#if completed}}<span class="bracket-team-score">{{awayScore}}</span>{{/if}}
+          </div>
+        </div>
+        {{/each}}
+      </div>
+      {{/each}}
+    </div>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

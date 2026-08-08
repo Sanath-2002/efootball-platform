@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet density-document">
+    {{> masthead subtitle=subtitle}}
+    <section class="board content-body">
+      {{> column-labels layout=layout}}
+      {{#each primaryRows}}
+      {{> team-row layout=../layout}}
+      {{/each}}
+    </section>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

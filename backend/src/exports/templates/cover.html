@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet sheet-cover">
+    {{> masthead subtitle=subtitle}}
+    <div class="cover-stage content-body">
+      {{#if competition.bannerUrl}}<img class="cover-banner" src="{{competition.bannerUrl}}" alt="" />{{/if}}
+      <div class="cover-type-badge">{{competition.type}}</div>
+      {{> stat-tiles items=coverStatTiles}}
+    </div>
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>

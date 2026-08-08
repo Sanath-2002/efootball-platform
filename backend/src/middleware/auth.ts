@@ -1,11 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { CompetitionRole } from '@prisma/client';
+import { Permission } from '../lib/permissions';
+import { getJwtSecret } from '../config/env';
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
     name: string;
+  };
+  competitionId?: string;
+  membership?: {
+    role: CompetitionRole;
+    permissions: Permission[];
   };
 }
 
@@ -21,9 +29,7 @@ export const authenticateToken = (
     return res.status(401).json({ error: 'Access token missing' });
   }
 
-  const secret = process.env.JWT_SECRET || 'efootball_super_secret_jwt_key_2026';
-
-  jwt.verify(token, secret, (err, user) => {
+  jwt.verify(token, getJwtSecret(), (err, user) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }

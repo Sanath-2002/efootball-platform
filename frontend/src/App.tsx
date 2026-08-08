@@ -10,6 +10,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { CreateCompetition } from './pages/CreateCompetition';
 import { CompetitionDetails } from './pages/CompetitionDetails';
+import { MatchDetail } from './pages/MatchDetail';
 import { PublicView } from './pages/PublicView';
 
 interface ErrorBoundaryProps {
@@ -134,6 +135,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <CompetitionDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/matches/:id"
+                element={
+                  <ProtectedRoute>
+                    <MatchDetail />
                   </ProtectedRoute>
                 }
               />

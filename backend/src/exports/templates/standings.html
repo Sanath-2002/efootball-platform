@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>{{{baseCss}}}:root { {{{themeCss}}} }</style>
+</head>
+<body class="theme-{{themeId}}">
+  <div class="sheet density-{{layout.density}}" style="{{boardStyle}}">
+    {{> masthead subtitle=subtitle}}
+
+    {{#each standingsGroups}}
+    <section class="board">
+      {{#if showGroupNames}}<h2 class="group-name">{{name}}</h2>{{/if}}
+      {{> column-labels layout=../layout}}
+      {{#each rows}}
+      {{> team-row layout=../../layout}}
+      {{/each}}
+    </section>
+    {{/each}}
+
+    {{> zone-legend}}
+    {{> sheet-footer}}
+  </div>
+</body>
+</html>
